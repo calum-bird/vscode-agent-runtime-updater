@@ -37,17 +37,44 @@ Run **Codex Agent Updater: Restore Original SDK Setting** and **Claude Agent Upd
 
 ## Build and install
 
-To build the extension from source, use Node.js 22.12 or newer:
+To build the extension from source, use Bun and Node.js 22.12 or newer (for the Node test runner):
 
 ```sh
 git clone https://github.com/calum-bird/vscode-agent-runtime-updater.git
 cd vscode-agent-runtime-updater
-npm ci --ignore-scripts
-npm test
-npm run package
+bun install --frozen-lockfile --ignore-scripts
+bun run format:check
+bun run typecheck
+bun run test
+bun run build
 code --install-extension agent-runtime-updater-0.2.0.vsix
 ```
 
-You can also install the generated VSIX through **Extensions: Install from VSIX…** in VS Code. Node.js and npm are only needed to build the extension.
+You can also install the generated VSIX through **Extensions: Install from VSIX…** in VS Code. Bun and Node.js are only needed to build and test the extension.
+
+## Finding your way around the code
+
+Start with [extension activation](src/extension.ts), which creates the output channel, registers both providers, and schedules update checks.
+
+| Location                                 | Responsibility                                                                                                 |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| [Codex provider](src/providers/codex/)   | Codex commands, SDK setting selection, package layout, and app-server probe                                    |
+| [Claude provider](src/providers/claude/) | Claude commands, saved selection, LaunchAgent, package layout, and SDK probe                                   |
+| [Shared helpers](src/shared/)            | Registry downloads, checksums, archive validation, locks, temporary files, installation, versions, and history |
+| [VS Code integration](src/vscode/)       | Settings document edits, command registration, notifications, restart, storage discovery, and scheduled checks |
+| [Tests](test/)                           | Provider behavior, shared helpers, activation, settings preservation, and command scheduling                   |
+| [Terminal tools](tools/)                 | Prepare runtimes independently of extension activation                                                         |
+
+Both provider folders follow the same reading order: `commands.ts` describes user actions, `runtime.ts` downloads and checks runtimes, `binding.ts` records and changes the selected runtime, and `probe.ts` exercises startup. Claude's `launch-agent.ts` contains its macOS environment integration.
+
+An update first installs into a temporary directory. The [shared installer](src/shared/installation.ts) publishes it only after the provider's health check succeeds. The provider binding then selects it and saves recovery history. Installing and selecting are separate operations so a failed download or health check cannot change the active selection.
+
+Codex recovery records remain in VS Code global state; Claude recovery records remain in its storage directory. The refactor preserves those record formats, storage paths, command IDs, and the LaunchAgent label and contents.
+
+All source, tests, and terminal tools are TypeScript. [The TypeScript configuration](tsconfig.json) enables strict checking, including unused declarations, and compiles everything to CommonJS JavaScript under `dist/`. The extension entry point is `dist/src/extension.js`; the VSIX includes the compiled source and source maps, while tests and terminal tools remain development-only.
+
+Run `bun run format` to format source, tests, tools, and project configuration, and `bun run typecheck` to check types without emitting files. `bun run compile` generates JavaScript. `bun run test` compiles first and runs the unit and activation smoke tests using Node. `bun run build` compiles and packages the VSIX automatically.
+
+After compilation, the optional terminal tools are `node dist/tools/prepare.js /absolute/storage` and `node dist/tools/prepare-claude.js /absolute/claude-storage [--select]`. The two VS Code integration runners are compiled under `dist/test/` and require a prepared test window and real runtimes; they are separate from the unit suite.
 
 Licensed under [MIT](LICENSE).

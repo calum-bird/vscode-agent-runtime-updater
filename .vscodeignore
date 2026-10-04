@@ -1,6 +1,11 @@
 test/**
 tools/**
+src/**
+dist/test/**
+dist/tools/**
+tsconfig.json
 .vscode/**
 *.vsix
-package-lock.json
+bun.lock
 .gitignore
+.prettierrc.json
