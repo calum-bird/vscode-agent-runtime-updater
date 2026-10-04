@@ -1,0 +1,60 @@
+{
+  "name": "codex-agent-updater",
+  "displayName": "Agent Runtime Updater (Codex & Claude)",
+  "description": "Update Codex and Claude runtimes used by VS Code's built-in Agents panel, with verification and rollback.",
+  "version": "0.2.0",
+  "publisher": "calumbird-local",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/calum-bird/vscode-agent-runtime-updater.git"
+  },
+  "homepage": "https://github.com/calum-bird/vscode-agent-runtime-updater#readme",
+  "bugs": {
+    "url": "https://github.com/calum-bird/vscode-agent-runtime-updater/issues"
+  },
+  "engines": { "vscode": "^1.140.0" },
+  "categories": ["Other"],
+  "main": "./src/extension.js",
+  "extensionKind": ["ui"],
+  "activationEvents": ["onStartupFinished"],
+  "capabilities": {
+    "untrustedWorkspaces": { "supported": false },
+    "virtualWorkspaces": { "supported": false }
+  },
+  "contributes": {
+    "commands": [
+      { "command": "codexAgentUpdater.update", "title": "Update to Latest Stable", "category": "Codex Agent Updater" },
+      { "command": "codexAgentUpdater.check", "title": "Check for Updates", "category": "Codex Agent Updater" },
+      { "command": "codexAgentUpdater.status", "title": "Show Status", "category": "Codex Agent Updater" },
+      { "command": "codexAgentUpdater.rollback", "title": "Roll Back Previous Update", "category": "Codex Agent Updater" },
+      { "command": "codexAgentUpdater.restore", "title": "Restore Original SDK Setting", "category": "Codex Agent Updater" },
+      { "command": "codexAgentUpdater.restart", "title": "Restart Local Agent Host", "category": "Codex Agent Updater" },
+      { "command": "claudeAgentUpdater.update", "title": "Update to Latest Stable", "category": "Claude Agent Updater" },
+      { "command": "claudeAgentUpdater.check", "title": "Check for Updates", "category": "Claude Agent Updater" },
+      { "command": "claudeAgentUpdater.status", "title": "Show Status", "category": "Claude Agent Updater" },
+      { "command": "claudeAgentUpdater.rollback", "title": "Roll Back Previous Update", "category": "Claude Agent Updater" },
+      { "command": "claudeAgentUpdater.restore", "title": "Restore Original SDK Environment", "category": "Claude Agent Updater" },
+      { "command": "claudeAgentUpdater.restart", "title": "Restart Local Agent Host", "category": "Claude Agent Updater" }
+    ],
+    "configuration": {
+      "title": "Agent Runtime Updater",
+      "properties": {
+        "codexAgentUpdater.checkOnStartup": {
+          "type": "boolean", "default": true, "scope": "application",
+          "description": "Check npm for stable Codex releases at startup and daily. Downloads and changes only happen when you run Update."
+        },
+        "claudeAgentUpdater.checkOnStartup": {
+          "type": "boolean", "default": true, "scope": "application",
+          "description": "Check npm for stable Claude Agent SDK releases at startup and daily. Downloads and changes only happen when you run Update."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "package": "vsce package --out agent-runtime-updater-0.2.0.vsix"
+  },
+  "dependencies": { "jsonc-parser": "3.3.1" },
+  "devDependencies": { "@vscode/vsce": "3.6.2" }
+}
